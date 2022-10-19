@@ -204,15 +204,15 @@ export default {
                   const total = parseFloat(this.fields.pay_1) - interest;
                   const total_amount = parseFloat(this.fields.amount) - total;
                   this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
-                  this.total_interest += interest;
-                  this.total_pay += total;
+                  this.total_interest += interest || 0;
+                  this.total_pay += total || 0;
                } else {
                   const interest = (((parseFloat(this.fields.interest_rate_1) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
                   const total = parseFloat(this.fields.pay_1) - interest;
                   const total_amount = this.table_data[i - 1].total_amount - total;
                   this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
-                  this.total_interest += interest;
-                  this.total_pay += total;
+                  this.total_interest += interest || 0;
+                  this.total_pay += total || 0;
                }
             } else if (i > 12 && i <= 24) {
                this.total_pay_all += this.fields.pay_2 ? parseFloat(this.fields.pay_2) : 0;
@@ -220,16 +220,16 @@ export default {
                const total = parseFloat(this.fields.pay_2) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
                this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
-               this.total_interest += interest;
-               this.total_pay += total;
+               this.total_interest += interest || 0;
+               this.total_pay += total || 0;
             } else if (i > 24 && i <= 36) {
                this.total_pay_all += this.fields.pay_3 ? parseFloat(this.fields.pay_3) : 0;
                const interest = (((parseFloat(this.fields.interest_rate_3) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
                const total = parseFloat(this.fields.pay_3) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
                this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
-               this.total_interest += interest;
-               this.total_pay += total;
+               this.total_interest += interest || 0;
+               this.total_pay += total || 0;
             }
          }
       },
@@ -240,13 +240,6 @@ export default {
             e.returnValue = false;
          }
       },
-      // formatCurrency(e, field) {
-      //    const value = e.target.value
-      //       .toString()
-      //       .replace(/\D/g, "")
-      //       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      //    this.fields[field] = value;
-      // },
    },
 };
 </script>
