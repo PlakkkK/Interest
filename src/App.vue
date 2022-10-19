@@ -28,11 +28,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>เงินต้น</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.amount"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -42,11 +41,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>อัตราดอกเบี้ย ปีที่ 1</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.interest_rate_1"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -56,11 +54,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>อัตราดอกเบี้ย ปีที่ 2</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.interest_rate_2"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -70,11 +67,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>อัตราดอกเบี้ย ปีที่ 3</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.interest_rate_3"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -85,11 +81,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>ปีที่ 1 ยอดผ่อนต่อเดือน</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.pay_1"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -99,11 +94,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>ปีที่ 2 ยอดผ่อนต่อเดือน</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.pay_2"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -113,11 +107,10 @@
          <div class="d-flex align-items-center justify-content-between">
             <span>ปีที่ 3 ยอดผ่อนต่อเดือน</span>
             <div class="d-flex align-items-center text-right">
-               <input
-                  type="text"
-                  class="form-control text-right input-border-0"
+               <CurrencyInput
                   placeholder="0"
                   v-model="fields.pay_3"
+                  :options="{ currency: 'USD', currencyDisplay: 'hidden' }"
                   @keypress="inputNumberAndDot($event)"
                   @keyup="changeInput"
                />
@@ -141,7 +134,7 @@
                <tr v-for="installment in 36" :key="installment">
                   <td class="text-center font-10">{{ installment }}</td>
                   <td class="text-right font-10">
-                     {{ $filters.numberShowCurrencyFormatHtml(table_data[installment] ? table_data[installment].amount : 0) }}
+                     {{ $filters.numberShowCurrencyFormat2DigitsHtml(table_data[installment] ? table_data[installment].amount : 0) }}
                   </td>
                   <td class="text-right font-10">{{ $filters.numberShowCurrencyFormatHtml(getInterestRate(installment)) }}</td>
                   <td class="text-right font-10">
@@ -166,17 +159,22 @@
 </template>
 
 <script>
+import CurrencyInput from "./components/CurrencyInput.vue";
+
 export default {
+   components: {
+      CurrencyInput,
+   },
    data() {
       return {
          fields: {
-            amount: "",
-            interest_rate_1: "",
-            interest_rate_2: "",
-            interest_rate_3: "",
-            pay_1: "",
-            pay_2: "",
-            pay_3: "",
+            amount: null,
+            interest_rate_1: null,
+            interest_rate_2: null,
+            interest_rate_3: null,
+            pay_1: null,
+            pay_2: null,
+            pay_3: null,
          },
          table_data: [],
          total_interest: 0,
@@ -212,7 +210,7 @@ export default {
                   const interest = (((parseFloat(this.fields.interest_rate_1) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
                   const total = parseFloat(this.fields.pay_1) - interest;
                   const total_amount = this.table_data[i - 1].total_amount - total;
-                  this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
+                  this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
                   this.total_interest += interest;
                   this.total_pay += total;
                }
@@ -221,7 +219,7 @@ export default {
                const interest = (((parseFloat(this.fields.interest_rate_2) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
                const total = parseFloat(this.fields.pay_2) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
-               this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
+               this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
                this.total_interest += interest;
                this.total_pay += total;
             } else if (i > 24 && i <= 36) {
@@ -229,7 +227,7 @@ export default {
                const interest = (((parseFloat(this.fields.interest_rate_3) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
                const total = parseFloat(this.fields.pay_3) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
-               this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
+               this.table_data[i] = { amount: this.table_data[i - 1].total_amount, interest, total, total_amount };
                this.total_interest += interest;
                this.total_pay += total;
             }
