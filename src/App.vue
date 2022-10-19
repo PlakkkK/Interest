@@ -1,6 +1,30 @@
 <template>
+   <div class="text-center">
+      <h4>คำนวณอัตราดอกเบี้ย</h4>
+   </div>
    <div class="row m-0">
       <div class="col-md-5">
+         <table class="table table-bordered mt-3">
+            <thead>
+               <tr class="bg-dark text-white">
+                  <th class="table-header-center text-right" colspan="2">3 ปีแรก</th>
+               </tr>
+            </thead>
+            <tbody>
+               <tr>
+                  <td class="text-center font-10">เงินที่ชำระทั้งสิ้น</td>
+                  <td class="text-right font-10">{{ $filters.numberShowCurrencyFormatHtml(total_pay_all, "0") }} บาท</td>
+               </tr>
+               <tr>
+                  <td class="text-center font-10">ดอกเบี้ยจ่ายรวม</td>
+                  <td class="text-right font-10">{{ $filters.numberShowCurrencyFormat2DigitsHtml(total_interest, "0") }} บาท</td>
+               </tr>
+               <tr>
+                  <td class="text-center font-10">เงินต้นจ่ายรวม</td>
+                  <td class="text-right font-10">{{ $filters.numberShowCurrencyFormat2DigitsHtml(total_pay, "0") }} บาท</td>
+               </tr>
+            </tbody>
+         </table>
          <div class="d-flex align-items-center justify-content-between">
             <span>เงินต้น</span>
             <div class="d-flex align-items-center text-right">
@@ -117,9 +141,9 @@
                <tr v-for="installment in 36" :key="installment">
                   <td class="text-center font-10">{{ installment }}</td>
                   <td class="text-right font-10">
-                     {{ $filters.numberShowCurrencyFormat2DigitsHtml(table_data[installment] ? table_data[installment].amount : 0) }}
+                     {{ $filters.numberShowCurrencyFormatHtml(table_data[installment] ? table_data[installment].amount : 0) }}
                   </td>
-                  <td class="text-right font-10">{{ $filters.numberShowCurrencyFormat2DigitsHtml(getInterestRate(installment)) }}</td>
+                  <td class="text-right font-10">{{ $filters.numberShowCurrencyFormatHtml(getInterestRate(installment)) }}</td>
                   <td class="text-right font-10">
                      {{ $filters.numberShowCurrencyFormat2DigitsHtml(table_data[installment] ? table_data[installment].interest : 0) }}
                   </td>
@@ -157,15 +181,10 @@ export default {
          table_data: [],
          total_interest: 0,
          total_pay: 0,
+         total_pay_all: 0,
       };
    },
    methods: {
-      genAmount(installment) {
-         console.log(installment);
-         if (installment == 1) {
-            return this.fields.amount;
-         }
-      },
       getInterestRate(installment) {
          if (installment <= 12) {
             return this.fields.pay_1;
@@ -178,33 +197,37 @@ export default {
       changeInput() {
          this.total_interest = 0;
          this.total_pay = 0;
+         this.total_pay_all = 0;
          for (let i = 1; i < 37; i++) {
             if (i <= 12) {
+               this.total_pay_all += this.fields.pay_1 ? parseFloat(this.fields.pay_1) : 0;
                if (i == 1) {
-                  const interest = (((this.fields.interest_rate_1 * this.fields.amount) / 100) * 30) / 365;
-                  const total = this.fields.pay_1 - interest;
-                  const total_amount = this.fields.amount - total;
+                  const interest = (((parseFloat(this.fields.interest_rate_1) * parseFloat(this.fields.amount)) / 100) * 30) / 365;
+                  const total = parseFloat(this.fields.pay_1) - interest;
+                  const total_amount = parseFloat(this.fields.amount) - total;
                   this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
                   this.total_interest += interest;
                   this.total_pay += total;
                } else {
-                  const interest = (((this.fields.interest_rate_1 * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
-                  const total = this.fields.pay_1 - interest;
+                  const interest = (((parseFloat(this.fields.interest_rate_1) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
+                  const total = parseFloat(this.fields.pay_1) - interest;
                   const total_amount = this.table_data[i - 1].total_amount - total;
                   this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
                   this.total_interest += interest;
                   this.total_pay += total;
                }
             } else if (i > 12 && i <= 24) {
-               const interest = (((this.fields.interest_rate_2 * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
-               const total = this.fields.pay_2 - interest;
+               this.total_pay_all += this.fields.pay_2 ? parseFloat(this.fields.pay_2) : 0;
+               const interest = (((parseFloat(this.fields.interest_rate_2) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
+               const total = parseFloat(this.fields.pay_2) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
                this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
                this.total_interest += interest;
                this.total_pay += total;
             } else if (i > 24 && i <= 36) {
-               const interest = (((this.fields.interest_rate_3 * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
-               const total = this.fields.pay_3 - interest;
+               this.total_pay_all += this.fields.pay_3 ? parseFloat(this.fields.pay_3) : 0;
+               const interest = (((parseFloat(this.fields.interest_rate_3) * this.table_data[i - 1].total_amount) / 100) * 30) / 365;
+               const total = parseFloat(this.fields.pay_3) - interest;
                const total_amount = this.table_data[i - 1].total_amount - total;
                this.table_data[i] = { amount: this.fields.amount, interest, total, total_amount };
                this.total_interest += interest;
@@ -212,56 +235,20 @@ export default {
             }
          }
       },
-      calInterest(installment) {
-         //  if (installment <= 12) {
-         //     if (installment == 1) {
-         //        return (((this.fields.interest_rate_1 * this.fields.amount) / 100) * 30) / 365;
-         //     }
-         //  } else if (installment > 12 && installment <= 24) {
-         //     // return this.fields.pay_2;
-         //  } else if (installment > 24 && installment <= 36) {
-         //     // return this.fields.pay_3;
-         //  }
-         if (installment <= 12) {
-            if (installment == 1) {
-               return this.fields.pay_1 - (((this.fields.interest_rate_1 * this.fields.amount) / 100) * 30) / 365;
-            }
-         } else if (installment > 12 && installment <= 24) {
-            // return this.fields.pay_2;
-         } else if (installment > 24 && installment <= 36) {
-            // return this.fields.pay_3;
-         }
-      },
-      getTotal(installment) {
-         if (installment <= 12) {
-            if (installment == 1) {
-               return this.fields.pay_1 - (((this.fields.interest_rate_1 * this.fields.amount) / 100) * 30) / 365;
-            }
-            // this.table_data[installment].
-         } else if (installment > 12 && installment <= 24) {
-            // return this.fields.pay_2;
-         } else if (installment > 24 && installment <= 36) {
-            // return this.fields.pay_3;
-         }
-      },
-      getTotalAmount(installment) {
-         if (installment <= 12) {
-            if (installment == 1) {
-               return this.fields.amount - (this.fields.pay_1 - (((this.fields.interest_rate_1 * this.fields.amount) / 100) * 30) / 365);
-            }
-         } else if (installment > 12 && installment <= 24) {
-            // return this.fields.pay_2;
-         } else if (installment > 24 && installment <= 36) {
-            // return this.fields.pay_3;
-         }
-      },
       inputNumberAndDot(e) {
-         if ((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode <= 46) {
+         if ((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode == 46) {
             e.returnValue = true;
          } else {
             e.returnValue = false;
          }
       },
+      // formatCurrency(e, field) {
+      //    const value = e.target.value
+      //       .toString()
+      //       .replace(/\D/g, "")
+      //       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      //    this.fields[field] = value;
+      // },
    },
 };
 </script>
